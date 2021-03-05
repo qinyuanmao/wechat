@@ -19,13 +19,13 @@ module Wechat
       attr_accessor :account_from_request
 
       def on(message_type, with: nil, respond: nil, &block)
-        raise 'Unknow message type' unless %i[text image voice video shortvideo link event click view scan batch_job location label_location fallback].include?(message_type)
+        raise 'Unknow message type' unless %i[text image voice video shortvideo link event click view scan batch_job location label_location fallback miniprogrampage].include?(message_type)
 
         config = respond.nil? ? {} : { respond: respond }
         config[:proc] = block if block_given?
 
         if with.present?
-          raise 'Only text, event, click, view, scan and batch_job can having :with parameters' unless %i[text event click view scan batch_job].include?(message_type)
+          raise 'Only text, event, click, view, scan and batch_job can having :with parameters' unless %i[text event click view scan batch_job miniprogrampage].include?(message_type)
 
           config[:with] = with
           if message_type == :scan
@@ -174,8 +174,8 @@ module Wechat
       request_msg = Wechat::Message.from_hash(post_xml)
       response_msg = run_responder(request_msg)
 
-      if response_msg.respond_to? :to_xml
-        render plain: process_response(response_msg)
+      if response_msg.respond_to? :to_json
+        render json: process_response(response_msg)
       else
         head :ok, content_type: 'text/html'
       end
@@ -218,7 +218,7 @@ module Wechat
 
       if @we_encrypt_mode && request_encrypt_content.present?
         content, @we_app_id = unpack(decrypt(Base64.decode64(request_encrypt_content), @we_encoding_aes_key))
-        data = Hash.from_xml(content)
+        data = { 'xml' => JSON.parse(content) }
       end
 
       data_hash = data.fetch('xml', {})
@@ -247,9 +247,9 @@ module Wechat
     end
 
     def process_response(response)
-      msg = response[:MsgType] == 'success' ? 'success' : response.to_xml
+      msg = response[:MsgType] == 'success' ? 'success' : response.to_json
 
-      if @we_encrypt_mode
+      if @we_encrypt_mode && response[:MsgType] != 'success'
         encrypt = Base64.strict_encode64(encrypt(pack(msg, @we_app_id), @we_encoding_aes_key))
         msg = gen_msg(encrypt, params[:timestamp], params[:nonce])
       end
@@ -259,11 +259,12 @@ module Wechat
 
     def gen_msg(encrypt, timestamp, nonce)
       msg_sign = Signature.hexdigest(@we_token, timestamp, nonce, encrypt)
-
-      { Encrypt: encrypt,
+      {
+        Encrypt: encrypt,
         MsgSignature: msg_sign,
         TimeStamp: timestamp,
-        Nonce: nonce }.to_xml(root: 'xml', children: 'item', skip_instruct: true, skip_types: true)
+        Nonce: nonce
+      }.to_json
     end
 
     def request_encrypt_content
@@ -271,7 +272,7 @@ module Wechat
     end
 
     def request_content
-      params[:xml].nil? ? Hash.from_xml(request.raw_post) : { 'xml' => params[:xml] }
+      params[:xml].nil? ? { 'xml' => JSON.parse(request.raw_post) } : { 'xml' => params[:xml] }
     end
   end
 end

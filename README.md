@@ -1,6 +1,8 @@
 WeChat [![Gem Version](https://badge.fury.io/rb/wechat.svg)](https://rubygems.org/gems/wechat) [![Build Status](https://travis-ci.com/Eric-Guo/wechat.svg)](https://travis-ci.com/github/Eric-Guo/wechat) [![Maintainability](https://api.codeclimate.com/v1/badges/12885358487c13e91e00/maintainability)](https://codeclimate.com/github/Eric-Guo/wechat/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/12885358487c13e91e00/test_coverage)](https://codeclimate.com/github/Eric-Guo/wechat/test_coverage)
 ======
 
+> fork from [https://github.com/Eric-Guo/wechat](https://github.com/Eric-Guo/wechat), 客服消息使用 json 请求
+
 [![Join the chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Eric-Guo/wechat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [中文文档 Chinese document](/README-CN.md)
